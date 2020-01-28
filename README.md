@@ -79,3 +79,6 @@ On le modifie à l'aide de la commande suivante :
 ```
 printf '\x01' | dd of=program bs=1 seek=2155 count=1 conv=notrunc
 ```
+![alt text](secuEmbarque.png)
+
+# Binwalk
