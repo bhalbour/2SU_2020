@@ -1,4 +1,4 @@
-#TD emily : Reverse engineering
+# TD emily : Reverse engineering
 
 ## Analyse statique
 
@@ -6,7 +6,8 @@ On cherche à determiner le type de fichier avec la commande *file* :
 
 output :
 
-```ELF 64-bit LSB shared object, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, for GNU/Linux 2.6.32, BuildID[sha1]=23f76048299c064a36379025294b4a506e8d422d, not stripped
+```
+ELF 64-bit LSB shared object, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, for GNU/Linux 2.6.32, BuildID[sha1]=23f76048299c064a36379025294b4a506e8d422d, not stripped
 ```
 
 On constate qu'il s'agit bien d'un executable linux.
