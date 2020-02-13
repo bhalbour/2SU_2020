@@ -1,3 +1,25 @@
+- Quels sont les chemins d'attaque possibles sur la signature d'un système embarqué?
+
+
+
+- A quoi sert la chaîne de confiance? Pourquoi est-elle nécessaire?
+
+La chaîne de confiance permet de s'assurer la sécurité d'un système sur au niveau de plusieurs couches, du hardware au software.
+Ainsi, si un attaquant découvre une faille au niveau d'une couche supérieure, d'autres éléments de sécurité seront en place pour l'empêcher de de descendre à une couche inférieure. Ce concept est lié à la défense en profondeur.
+
+
+- Décrire la méthode pour aborder la sécurité sur un produit embarqué. Pourquoi établir un modèle d'attaquant est-il important?
+
+Dans un premier temps, il faut déterminer les points d'entrée et d'attaque (port USB, port Ethernet, etc.) qui sont spécifiques à chaque système embarqué. Ensuite, il faut essayer de modéliser l'attaquant contre qui on veut se défendre.
+
+- Trouver un moyen rapide de faire du debug embarqué (par exemple sur cible ARM)? Expliquer les avantages
+
+- Lister les catégories de bug possibles et comment les exploiter et les défendre
+
+- Quelles idées pour améliorer la sécurité en embarqué? (IA, Anti-debug, Obfuscation, Crypto ...) Choisissez une idée, chercher si elle existe et développer en quelques phrases quel avantage elle apporte et ses limites
+
+
+
 # TD emily : Reverse engineering
 
 ## Analyse statique
@@ -74,6 +96,8 @@ On peut le retrouver à l'aide de la commande *hexdump* :
 00000860  c0 75 07 b8 01 00 00 00  eb 05 b8 00 00 00 00 c9  |.u..............|
 ```
 
+## Modification du binaire
+
 On le modifie à l'aide de la commande suivante :
 
 ```
@@ -81,4 +105,31 @@ printf '\x01' | dd of=program bs=1 seek=2155 count=1 conv=notrunc
 ```
 ![alt text](secuEmbarque.png)
 
+## autre méthode plus rapide : utilisation de ghidra
+
+En utilisant le logiciel ghidra sur le fichier binaire, il est aussi possible de desassembler le binaire, retrouver la fonction is_valid et de modifier la valeur voulue (CTRL + SHIFT + g)
+
+![alt text](captureGhidra.png)
+
+
 # Binwalk
+
+#trouver le pingouin
+
+On télécharge d'abord le binaire cible : vmlinuz-qemu-arm-2.6.20
+
+Ensuite, on recherche les fichiers présents dans le binaire :
+
+```
+binwalk -e -d 8 vmlinuz-qemu-arm-2.6.20
+```
+
+On remarque alors que que des images sont présentes. Notre pingouin a donc de grande chances de s'y trouver. Regardons le fichier tux.png. On peut l'extraire en se placant dans le dossier généré par la commande ci-dessus :
+
+```
+dd if=E7E0 skip=2984567 count=24656 of=pingouin.png bs=1
+```
+
+on obtient l'image suivante :
+
+![alt text](pingouin.png)
