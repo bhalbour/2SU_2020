@@ -1,23 +1,40 @@
 - Quels sont les chemins d'attaque possibles sur la signature d'un système embarqué?
 
 
-
 - A quoi sert la chaîne de confiance? Pourquoi est-elle nécessaire?
 
-La chaîne de confiance permet de s'assurer la sécurité d'un système sur au niveau de plusieurs couches, du hardware au software.
-Ainsi, si un attaquant découvre une faille au niveau d'une couche supérieure, d'autres éléments de sécurité seront en place pour l'empêcher de de descendre à une couche inférieure. Ce concept est lié à la défense en profondeur.
+La chaîne de confiance permet de s'assurer la sécurité d'un système sur au niveau de plusieurs couches, du hardware au software. Ainsi, si un attaquant découvre une faille au niveau d'une couche supérieure, d'autres éléments de sécurité seront en place pour l'empêcher de de descendre à une couche inférieure. Ce concept est lié à la défense en profondeur.
 
 
 - Décrire la méthode pour aborder la sécurité sur un produit embarqué. Pourquoi établir un modèle d'attaquant est-il important?
 
-Dans un premier temps, il faut déterminer les points d'entrée et d'attaque (port USB, port Ethernet, etc.) qui sont spécifiques à chaque système embarqué. Ensuite, il faut essayer de modéliser l'attaquant contre qui on veut se défendre.
+Dans un premier temps, il faut déterminer ce que fait notre produit. Ensuite, il faut essayer de deviner ce que l'attaquant peut gagner en visant celui-ci. Il faut également identifier par où on rentre dans le système pour ensuite comprendre où l'adversaire peut faire mal. Enfin, il convient d'ajouter la sécurité adéquate.
 
 - Trouver un moyen rapide de faire du debug embarqué (par exemple sur cible ARM)? Expliquer les avantages
 
+La solution la plus rapide reste d'utiliser le port JTAG intégré au microcontrolleur. Cela necessite souvent une interface entre le PC et le port JTAG.
+
 - Lister les catégories de bug possibles et comment les exploiter et les défendre
 
-- Quelles idées pour améliorer la sécurité en embarqué? (IA, Anti-debug, Obfuscation, Crypto ...) Choisissez une idée, chercher si elle existe et développer en quelques phrases quel avantage elle apporte et ses limites
+Les exploitations de bugs correspondent à des **attaques sofwares**.
 
+**stack buffer overflow** : déclaration d'un tableau statique et tentative d'accès à une case non définie
+
+*Solution* : vérifier les bornes
+
+**heap buffer overflow** : déclaration d'un tableau dynamique trop grand (gros malloc) ou utilisation d'un pointeur après un free.
+
+*Solution* : mettre le free après
+
+**signedness error** : si un entier int n'est pas uint, il sera convertit en un nombre positif, ce qui amène à des comportements inattendus.
+
+**use ininitialized** : si une variable n'est pas initialisée dans un programme, elle peut etre changée par un autre programme.
+
+**format string** : certains % donnent un accès à la RAM.
+
+*Solution* : sanitize inputs
+
+- Quelles idées pour améliorer la sécurité en embarqué? (IA, Anti-debug, Obfuscation, Crypto ...) Choisissez une idée, chercher si elle existe et développer en quelques phrases quel avantage elle apporte et ses limites
 
 
 # TD emily : Reverse engineering
