@@ -1,9 +1,10 @@
 - Quels sont les chemins d'attaque possibles sur la signature d'un système embarqué?
 
+Il est possible de dumper la mémoire du hardware pour récupérer les clés, d'effectuer ou attaque bit-flip, de faire du reverse engineering sur le système mais aussi de casser directement les clés.
 
 - A quoi sert la chaîne de confiance? Pourquoi est-elle nécessaire?
 
-La chaîne de confiance permet de s'assurer la sécurité d'un système sur au niveau de plusieurs couches, du hardware au software. Ainsi, si un attaquant découvre une faille au niveau d'une couche supérieure, d'autres éléments de sécurité seront en place pour l'empêcher de de descendre à une couche inférieure. Ce concept est lié à la défense en profondeur.
+La chaîne de confiance permet d'assurer la sécurité d'un système au niveau de plusieurs couches, du hardware au software. Ainsi, si un attaquant découvre une faille au niveau d'une couche supérieure, d'autres éléments de sécurité seront en place pour l'empêcher de descendre à une couche inférieure. Ce concept est lié à la défense en profondeur.
 
 
 - Décrire la méthode pour aborder la sécurité sur un produit embarqué. Pourquoi établir un modèle d'attaquant est-il important?
@@ -30,11 +31,9 @@ Les exploitations de bugs correspondent à des **attaques sofwares**.
 
 **use ininitialized** : si une variable n'est pas initialisée dans un programme, elle peut etre changée par un autre programme.
 
-**format string** : certains % donnent un accès à la RAM.
+**format string** : certains pourcentages donnent un accès à la RAM.
 
 *Solution* : sanitize inputs
-
-- Quelles idées pour améliorer la sécurité en embarqué? (IA, Anti-debug, Obfuscation, Crypto ...) Choisissez une idée, chercher si elle existe et développer en quelques phrases quel avantage elle apporte et ses limites
 
 
 # TD emily : Reverse engineering
@@ -131,7 +130,7 @@ En utilisant le logiciel ghidra sur le fichier binaire, il est aussi possible de
 
 # Binwalk
 
-#trouver le pingouin
+## trouver le pingouin
 
 On télécharge d'abord le binaire cible : vmlinuz-qemu-arm-2.6.20
 
@@ -150,3 +149,57 @@ dd if=E7E0 skip=2984567 count=24656 of=pingouin.png bs=1
 on obtient l'image suivante :
 
 ![alt text](pingouin.png)
+
+# Side Channel
+
+L'objectif est ici de simuler une attaque channel. Pour cela, j'ai créé le code suivant qui demande un mot de passe en entrée et le compare avec celui stocké dans le programme ("abc") :
+
+```
+#include <stdio.h>
+#include <time.h>
+#include <unistd.h>
+
+int main(int argc, char ** argv){
+  if (argv[1][0]=='a'){
+    sleep(1);
+    if (argv[1][1]=='b'){
+      sleep(1);
+      if (argv[1][2]=='c'){
+        sleep(1);
+        printf("mdp trouvé");
+      }
+    }
+  }
+
+}
+```
+
+Pour simuler le fait que des instructions sont présentes entre les conditions, j'ai utilisé des sleeps.
+
+## démonstration de l'attaque
+
+J'ai donc mesuré le temps d'execution du programme selon les données entrées dans celui-ci. Pour ne pas fausser les mesures, j'ai executé une première fois au préalable le programme afin qu'il soit présent dans le cache.
+
+en executant le programme avec un mot de passe faux, on a la sortie suivante :
+
+![alt text](1LettreFausse.png)
+
+si on entre un mot de passe avec la première lettre correcte, on remarque que le temps d'execution est plus long :
+
+![alt text](1LettreBonne.png)
+
+de même, si la première lettre est bonne mais pas la deuxième, on a le même temps d'execution :
+
+![alt text](1LettreBonne1Fausse.png)
+
+Il en est de même avec deux lettres correctes :
+
+![alt text](2LettresBonnes.png)
+
+et enfin, avec le mot de passe correct :
+
+![alt text](3LettresBonnes.png)
+
+cette démonstration montre bien qu'il est possible pour un attaquant de déviner le comportement du programme en analysant son temps d'execution. Dans ce cas précis, l'analyse des temps d'executions peut lui permettre de deviner un mot de passe.
+
+Cela est d'autant plus inquiétant avec un système embarqué dans la mesure ou il est facilement accessible par un attaquant. Il est possible pour lui d'extraire un binaire et d'effectuer ce genre d'attaque
