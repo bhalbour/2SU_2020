@@ -1,3 +1,5 @@
+# Questions
+
 - Quels sont les chemins d'attaque possibles sur la signature d'un système embarqué?
 
 Il est possible de dumper la mémoire du hardware pour récupérer les clés, effectuer une attaque bit-flip, de faire du reverse engineering sur le système mais aussi de casser directement les clés.
@@ -182,6 +184,8 @@ Le code prend en paramètre une chaine de caractère et la met en heap via la va
 ![alt text](heapOver.png)
 
 On peut voir qu'on a réussi à écrasé la variable name en dépassant la taille du tableau dynamique str.
+
+Pour se protéger des attaques heap overflow, il faut effectuer un contrôle sur les bornes
 
 # Side Channel
 
