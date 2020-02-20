@@ -1,6 +1,6 @@
 - Quels sont les chemins d'attaque possibles sur la signature d'un système embarqué?
 
-Il est possible de dumper la mémoire du hardware pour récupérer les clés, d'effectuer ou attaque bit-flip, de faire du reverse engineering sur le système mais aussi de casser directement les clés.
+Il est possible de dumper la mémoire du hardware pour récupérer les clés, effectuer une attaque bit-flip, de faire du reverse engineering sur le système mais aussi de casser directement les clés.
 
 - A quoi sert la chaîne de confiance? Pourquoi est-elle nécessaire?
 
@@ -38,7 +38,7 @@ Les exploitations de bugs correspondent à des **attaques sofwares**.
 
 # TD emily : Reverse engineering
 
-## Analyse statique
+### Analyse statique
 
 On cherche à determiner le type de fichier avec la commande *file* :
 
@@ -50,7 +50,7 @@ ELF 64-bit LSB shared object, x86-64, version 1 (SYSV), dynamically linked, inte
 
 On constate qu'il s'agit bien d'un executable linux.
 
-*strings* nous permet d'afficher les caractère affichables d'un fichier. En analysant la sortie, on trouve notamment les chaines de caractères suivantes :
+*strings* nous permet d'afficher les caractères affichables d'un fichier. En analysant la sortie, on trouve notamment les chaines de caractères suivantes :
 
 ```
 poop
@@ -61,7 +61,7 @@ That's not correct!
 
 On a donc ici une indication sur ce que fait le programme.
 
-L'utilitaire *objdump* va quant à lui nous permettre de desassembler le code, c'est à dire le traduire en language assembler à partir du binaire. Dans la sortie, on peut voir le code assembleur de la fonction is_valid :
+L'utilitaire *objdump* va quant à lui nous permettre de desassembler le code, c'est à dire le traduire en language assembleur à partir du binaire. Dans la sortie, on peut voir le code assembleur de la fonction is_valid :
 
 ```
 0000000000000840 <is_valid>:
@@ -112,7 +112,7 @@ On peut le retrouver à l'aide de la commande *hexdump* :
 00000860  c0 75 07 b8 01 00 00 00  eb 05 b8 00 00 00 00 c9  |.u..............|
 ```
 
-## Modification du binaire
+### Modification du binaire
 
 On le modifie à l'aide de la commande suivante :
 
@@ -121,16 +121,22 @@ printf '\x01' | dd of=program bs=1 seek=2155 count=1 conv=notrunc
 ```
 ![alt text](secuEmbarque.png)
 
-## autre méthode plus rapide : utilisation de ghidra
+### autre méthode plus rapide : utilisation de ghidra
 
 En utilisant le logiciel ghidra sur le fichier binaire, il est aussi possible de desassembler le binaire, retrouver la fonction is_valid et de modifier la valeur voulue (CTRL + SHIFT + g)
 
 ![alt text](captureGhidra.png)
 
+## Prendre un binaire de votre choix et changer son comportement
+
+Changer le comportement d'un binaire peut lui permettre d'avoir par exemple des accès root à un système.
+
 
 # Binwalk
 
-## trouver le pingouin
+### trouver le pingouin
+
+Binwalk nous permet de chercher et trouver une signature d'un fichier présent dans un binaire. Un attaquant peut donc récupérer des fichiers à partir de l'utilitaire.
 
 On télécharge d'abord le binaire cible : vmlinuz-qemu-arm-2.6.20
 
@@ -149,6 +155,33 @@ dd if=E7E0 skip=2984567 count=24656 of=pingouin.png bs=1
 on obtient l'image suivante :
 
 ![alt text](pingouin.png)
+
+# Heap Overflow
+
+Un Heap Overflow peut être provoqué en dépassant la taille d'un tableau dynamique alloué par un malloc. Essayons le code suivant :
+
+```
+#include <stdio.h>
+#include <time.h>
+#include <unistd.h>
+#include <string.h>
+#include <stdlib.h>
+
+int main(int argc, char ** argv){
+  char * str = (char *) malloc(sizeof(char)*3);
+  char * name = (char *) malloc(sizeof(char)*3);
+  strcpy(name,"Benjamin");
+  strcpy(str,argv[1]);
+
+  printf("\nname : %s\n",name);
+}
+```
+
+Le code prend en paramètre une chaine de caractère et la met en heap via la variable str déclarée avec malloc. L'objectif est ici d'écraser la variable name, qui se trouve juste à coté dans la heap. Démonstration :
+
+![alt text](heapOver.png)
+
+On peut voir qu'on a réussi à écrasé la variable name en dépassant la taille du tableau dynamique str.
 
 # Side Channel
 
@@ -176,7 +209,7 @@ int main(int argc, char ** argv){
 
 Pour simuler le fait que des instructions sont présentes entre les conditions, j'ai utilisé des sleeps.
 
-## démonstration de l'attaque
+### démonstration de l'attaque
 
 J'ai donc mesuré le temps d'execution du programme selon les données entrées dans celui-ci. Pour ne pas fausser les mesures, j'ai executé une première fois au préalable le programme afin qu'il soit présent dans le cache.
 
@@ -200,6 +233,6 @@ et enfin, avec le mot de passe correct :
 
 ![alt text](3LettresBonnes.png)
 
-cette démonstration montre bien qu'il est possible pour un attaquant de déviner le comportement du programme en analysant son temps d'execution. Dans ce cas précis, l'analyse des temps d'executions peut lui permettre de deviner un mot de passe.
+cette démonstration montre bien qu'il est possible pour un attaquant de deviner le comportement du programme en analysant son temps d'execution. Dans ce cas précis, l'analyse des temps d'executions peut lui permettre de deviner un mot de passe.
 
-Cela est d'autant plus inquiétant avec un système embarqué dans la mesure ou il est facilement accessible par un attaquant. Il est possible pour lui d'extraire un binaire et d'effectuer ce genre d'attaque
+Cela est d'autant plus inquiétant avec un système embarqué dans la mesure ou il est facilement accessible par un attaquant. Il est possible pour lui d'extraire un binaire et d'effectuer ce genre d'attaque.
